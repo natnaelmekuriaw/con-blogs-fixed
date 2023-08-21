@@ -6,3 +6,10 @@ export interface Blog {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface NewBlog {
+  title: string;
+  body: string;
+  image: string | null;
+  // author: string | null;
+}

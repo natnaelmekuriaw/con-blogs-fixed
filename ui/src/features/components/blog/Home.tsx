@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+
 import BlogList from "./BlogList";
 import { getBlogs } from "../../actions/blogService";
 
@@ -10,20 +12,31 @@ const Home = () => {
   const error = "";
   const titles = ["Blogs", "My Blogs"];
 
-  const getAllBlogs = async () => {
-    const allBlogs = await getBlogs();
-    setBlogs(allBlogs);
-    console.log("we have", allBlogs);
-  };
-  useEffect(() => {
-    getAllBlogs();
-  }, []);
+  const blogsQuery = useQuery({
+    queryKey: ["blogs"],
+    queryFn: () => getBlogs(),
+  });
 
+  if (blogsQuery.isLoading) {
+    return (
+      <div className="home">
+        <h2>Loading</h2>
+      </div>
+    );
+  }
+  if (blogsQuery.isError) {
+    return (
+      <div className="home">
+        <h2>Error fetching blogs</h2>
+        <h2>{JSON.stringify(blogsQuery.error)}</h2>
+      </div>
+    );
+  }
   return (
     <div className="home">
-      {error && <div>{error}</div>}
-      {isLoading && <div>Loading...</div>}
-      {blogs && <BlogList blogs={blogs} title={titles[0]} />}
+      {blogsQuery.data && (
+        <BlogList blogs={blogsQuery.data} title={titles[0]} />
+      )}
     </div>
   );
 };

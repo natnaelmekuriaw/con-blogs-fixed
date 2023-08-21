@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createBlog, getBlogs } from "../../actions/blogService";
+import { NewBlog } from "../../types";
+import { toast } from "react-toastify";
 
 const Create = () => {
   const [title, setTitle] = useState("");
@@ -9,11 +13,42 @@ const Create = () => {
   const [author, setAuthor] = useState("natnael");
   const [isPosting, setPosting] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const handleSubmit = () => {
-    // e.preventDefault();
-    // const blogs = { title, body, author };
+  const blogsQuery = useQuery({
+    queryKey: ["blogs"],
+    queryFn: () => getBlogs(),
+  });
+
+  const postBlogMutation = useMutation({
+    mutationFn: createBlog,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["blogs"] });
+      console.log("onsuccess", data);
+      toast.success("blog posted successfully");
+    },
+    onError: (errors) => {
+      if (Array.isArray(errors))
+        errors.map((err) => {
+          toast.error(`${err}`);
+        });
+      else toast.error(`${errors}`);
+      console.log("err is", errors);
+    },
+  });
+
+  const handleSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    const blog: NewBlog = {
+      title,
+      body,
+      // author,
+      image,
+    };
+
+    postBlogMutation.mutate(blog);
     // setPosting(true);
+
     // fetch("http://localhost:8181/blogs", {
     //   method: "POST",
     //   headers: { "Content-type": "application/json" },
@@ -31,6 +66,7 @@ const Create = () => {
 
   return (
     <div className="create">
+      {blogsQuery.data.length}
       <h2>Create Blog</h2>
       <form onSubmit={handleSubmit}>
         <label>Blog title :</label>

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { BaseUrl } from "../utils/baseUrl";
+import { Blog, NewBlog } from "../types";
 
 // export const getBlogs = async () => {
 //   try {
@@ -21,7 +22,6 @@ export const getBlogs = async () => {
     return data;
   } catch (error) {
     console.log("got fetch error", `${BaseUrl()}/products`, error);
-    return false;
   }
 };
 
@@ -35,6 +35,27 @@ export const getOneBlog = async (id: string) => {
     console.log("got fetch error", `${BaseUrl()}/products`, error);
     return false;
   }
+};
+
+export const createBlog = async (blog: NewBlog) => {
+  // return blog;
+
+  await axios
+    .post(`${BaseUrl()}/blogs`, blog)
+    .then((response) => {
+      // console.log("got fetch response", data);
+      return response;
+    })
+    .then((data) => {
+      console.log("got post ", data);
+      return data;
+    })
+    .catch((error) => {
+      console.log("got post error", `${BaseUrl()}/blogs`, error?.response);
+      const errors = error?.response?.data?.message;
+      if (errors) return Promise.reject(errors);
+      return Promise.reject(error);
+    });
 };
 
 export const deleteBlog = async (id: string) => {

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Routes, Route } from "react-router-dom";
-import { Grid, Box } from "@mui/material";
-import { toast } from "react-toastify";
+import { Box, Grid } from "@mui/material";
 import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import { useState } from "react";
+import { Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useQuery } from "@tanstack/react-query";
 
-import { getOneBlog, deleteBlog } from "../../actions/blogService";
+import { deleteBlog, getOneBlog } from "../../actions/blogService";
 import { Blog } from "../../types";
 import Create from "./Create";
 
@@ -17,85 +17,74 @@ const BlogDetail = () => {
   const titles = ["Blogs", "My Blogs"];
   const navigate = useNavigate();
 
-  const getBlog = async () => {
-    if (id) {
-      const blog = await getOneBlog(id);
-      setBlogs(blog);
-      console.log("we have", blog);
-    }
-  };
-  useEffect(() => {
-    getBlog();
-  }, []);
+  const blogQuery = useQuery({
+    queryKey: ["blogs", id],
+    queryFn: () => (id ? getOneBlog(id) : null),
+  });
 
   const handleDelete = async () => {
     if (id) {
       const blog = await deleteBlog(id);
-      toast.success("Blog deleted successfuly !", {
+      toast.success("Blog pos", {
         position: toast.POSITION.BOTTOM_LEFT,
       });
       setTimeout(() => {
         navigate("/");
       }, 2000);
     }
-    //   fetch('http://localhost:8181/blogs/' + blog.id, {
-    //       method: 'DELETE',
-    //       headers: { "Content-type": "application/json" },
-    //   })
-    //       .then(() => {
-    //           console.log('Blog deleted successfuly');
-    //           navigate('/');
-    //       })
-    //       .catch((e) => {
-    //           console.log('failed to delete blog due to ', e)
-    //       })
   };
+  if (blogQuery.isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (blogQuery.isError) {
+    return (
+      <div className="err">
+        <h2>Failed to fetch data</h2>
+        <h2>{JSON.stringify(blogQuery.error)}</h2>
+      </div>
+    );
+  }
   return (
     <div>
       <div className="blog-details">
-        {err && <div className="err">{err}</div>}
-        {isLoading && <div className="err">Loading...</div>}
-
-        {blog && (
-          <article>
-            <Grid container>
-              <Grid
-                item
-                xs={12}
+        <article>
+          <Grid container>
+            <Grid
+              item
+              xs={12}
+              sx={{
+                //   backgroundColor: "red",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <img
+                src={blogQuery.data.image}
+                alt="blog_image"
+                //   width="250"
+                //   height="220"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <h2>{blogQuery.data.title}</h2>
+              <p>{blogQuery.data.body}</p>
+              <Box
                 sx={{
-                  //   backgroundColor: "red",
                   display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
+                  justifyContent: "end",
+                  alignItems: "end",
+                  p: 1,
                 }}
               >
-                <img
-                  src={blog.image}
-                  alt="blog_image"
-                  //   width="250"
-                  //   height="220"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <h2>{blog.title}</h2>
-                <p>{blog.body}</p>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "end",
-                    alignItems: "end",
-                    p: 1,
-                  }}
-                >
-                  <p> {`${dayjs(blog?.createdAt).fromNow(true)}`} ago</p>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "end" }}>
-                  <button onClick={handleDelete}>Delete blog</button>
-                </Box>
-              </Grid>
+                <p> {`${dayjs(blogQuery.data.createdAt).fromNow(true)}`} ago</p>
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "end" }}>
+                <button onClick={handleDelete}>Delete blog</button>
+              </Box>
             </Grid>
-          </article>
-        )}
+          </Grid>
+        </article>
       </div>
       <Routes>
         <Route path="create" element={<Create />} />

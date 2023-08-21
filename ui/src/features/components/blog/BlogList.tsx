@@ -1,9 +1,9 @@
+import { Box, Grid } from "@mui/material";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import React from "react";
 import { Link } from "react-router-dom";
 import { Blog } from "../../types";
-import { Grid, Box } from "@mui/material";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
 interface Blogs {
@@ -13,7 +13,9 @@ interface Blogs {
 const BlogList: React.FC<Blogs> = ({ blogs, title }) => {
   return (
     <div className="blog-list">
-      <h2>{title}</h2>
+      <h2>
+        {title} ({blogs.length})
+      </h2>
       {blogs?.length > 0 && (
         <>
           {blogs.map((blog) => (

@@ -22,6 +22,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools />
       <Router>
         <div className="App">
           <ToastContainer />
@@ -38,7 +39,6 @@ function App() {
           </div>
         </div>
       </Router>
-      <ReactQueryDevtools />
     </QueryClientProvider>
   );
 }
